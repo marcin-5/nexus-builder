@@ -73,5 +73,12 @@ docs/_build/
 # Pyenv
 .python-version
 
+# Docker fish shell persistence
+docker/fish_history/
+docker/fish_config/
+
+# Environment files
+.env
+
 # Other
 *.orig

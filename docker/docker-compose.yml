@@ -1,0 +1,14 @@
+
+services:
+  app:
+    build: 
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../:/app/
+      - ./fish_history:/root/.local/share/fish
+      - ./fish_config:/root/.config/fish
