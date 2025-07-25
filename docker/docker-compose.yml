@@ -1,13 +1,16 @@
-
 services:
-  app:
-    build: 
+  nexus-builder:
+    build:
       context: ..
       dockerfile: docker/Dockerfile
+      args:
+        - APP_NAME=${APP_NAME:-nexus-builder}
+        - RUST_DIR=${RUST_DIR:-rust}
     env_file:
       - ../.env
+    container_name: ${APP_NAME:-nexus-builder}
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     volumes:
       - ../:/app/
       - ./fish_history:/root/.local/share/fish

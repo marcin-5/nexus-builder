@@ -1,6 +1,10 @@
 FROM rust:alpine
 LABEL authors="marcin"
 
+# Accept build arguments
+ARG APP_NAME=nexus-builder
+ARG RUST_DIR=rust
+
 # Install build dependencies and fish shell
 RUN apk add --no-cache \
     fish curl git fzf bash \
@@ -18,19 +22,23 @@ RUN fish -c "tide configure --auto --style=Rainbow --prompt_colors='True color' 
 RUN mkdir -p /opt/fish_config_default \
     && cp -r $FISH_CONFIG_DIR/* /opt/fish_config_default/
 
+# Create app name environment variable for use by scripts
+ENV APP_NAME=$APP_NAME
+ENV RUST_DIR=$RUST_DIR
+
 WORKDIR /app/
 
 COPY . .
 
 # Create the rust directory if it doesn't exist
-RUN mkdir -p /app/rust
+RUN mkdir -p /app/${RUST_DIR}
 
 # Copy the entrypoint script and make it executable
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Install cargo-watch in the rust subdirectory
-WORKDIR /app/rust
+WORKDIR /app/${RUST_DIR}
 RUN cargo install cargo-watch
 
 # Create directories for persistent fish history and config
