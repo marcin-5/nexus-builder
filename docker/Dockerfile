@@ -6,15 +6,20 @@ ARG APP_NAME=nexus-builder
 ARG RUST_DIR=rust
 ARG TZ=UTC
 
-# Install build dependencies, fish shell, mc, and timezone data
-RUN apk add --no-cache \
-    fish curl git fzf bash \
-    musl-dev gcc libc-dev \
-    build-base mc tzdata
+# Install dependencies.
+# Use a virtual package for build-time dependencies so they can be removed in a later step.
+RUN apk add --no-cache --virtual .build-deps \
+    musl-dev gcc libc-dev build-base \
+    && apk add --no-cache \
+    fish curl git fzf bash mc tzdata
 
 # Set timezone
 ENV TZ=$TZ
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Install cargo-watch early in its own layer.
+# This layer will be cached and only re-run if the base image changes.
+RUN cargo install cargo-watch
 
 # Set up fish plugins and apply default config for tide plugin
 ENV FISH_CONFIG_DIR /root/.config/fish
@@ -31,20 +36,33 @@ RUN mkdir -p /opt/fish_config_default \
 ENV APP_NAME=$APP_NAME
 ENV RUST_DIR=$RUST_DIR
 
-WORKDIR /app/
+WORKDIR /app
 
+# --- Caching Optimization ---
+# 1. Copy only the dependency manifest files first.
+COPY rust/Cargo.toml rust/Cargo.lock ./${RUST_DIR}/
+
+# 2. Set the WORKDIR and create a dummy library file to allow `cargo fetch` to succeed.
+WORKDIR /app/${RUST_DIR}
+RUN mkdir src && touch src/lib.rs
+RUN cargo fetch
+
+# 3. Go back to the app's root and copy all other files.
+# This overwrites the dummy file with the real one and copies the rest of your source code.
+WORKDIR /app
 COPY . .
-
-# Create the rust directory if it doesn't exist
-RUN mkdir -p /app/${RUST_DIR}
+# --- End of Caching Optimization ---
 
 # Copy the entrypoint script and make it executable
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Install cargo-watch in the rust subdirectory
+# Now that the Rust code is built or dependencies are fetched,
+# remove the build-time packages to reduce image size.
+RUN apk del .build-deps
+
+# Set the final WORKDIR for the command
 WORKDIR /app/${RUST_DIR}
-RUN cargo install cargo-watch
 
 # Create directories for persistent fish history and config
 RUN mkdir -p /root/.local/share/fish /root/.config/fish
