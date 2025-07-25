@@ -1,9 +1,8 @@
-
-FROM rust:latest
+FROM rust:alpine
 LABEL authors="marcin"
 
 # Install fish shell and dependencies for plugins
-RUN apt-get update && apt-get install -y fish curl git fzf grc
+RUN apk add --no-cache fish curl git fzf grc bash
 
 # Set up fish plugins and apply default config for tide plugin
 ENV FISH_CONFIG_DIR /root/.config/fish
