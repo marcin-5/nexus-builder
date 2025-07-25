@@ -6,6 +6,7 @@ services:
       args:
         - APP_NAME=${APP_NAME:-nexus-builder}
         - RUST_DIR=${RUST_DIR:-rust}
+        - TZ=${TZ:-UTC}
     env_file:
       - ../.env
     container_name: ${APP_NAME:-nexus-builder}

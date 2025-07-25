@@ -4,12 +4,17 @@ LABEL authors="marcin"
 # Accept build arguments
 ARG APP_NAME=nexus-builder
 ARG RUST_DIR=rust
+ARG TZ=UTC
 
-# Install build dependencies and fish shell
+# Install build dependencies, fish shell, mc, and timezone data
 RUN apk add --no-cache \
     fish curl git fzf bash \
     musl-dev gcc libc-dev \
-    build-base
+    build-base mc tzdata
+
+# Set timezone
+ENV TZ=$TZ
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Set up fish plugins and apply default config for tide plugin
 ENV FISH_CONFIG_DIR /root/.config/fish

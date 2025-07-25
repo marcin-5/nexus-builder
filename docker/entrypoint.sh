@@ -5,8 +5,16 @@ FISH_CONFIG_DIR="/root/.config/fish"
 DEFAULT_CONFIG_DIR="/opt/fish_config_default"
 APP_NAME=${APP_NAME:-nexus-builder}
 RUST_DIR=${RUST_DIR:-rust}
+TZ=${TZ:-UTC}
 
 echo "Starting $APP_NAME..."
+
+# Set timezone at runtime
+if [ "$TZ" != "UTC" ]; then
+    echo "Setting timezone to $TZ"
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+    echo $TZ > /etc/timezone
+fi
 
 # Make sure the app and rust directories exist
 mkdir -p /app
