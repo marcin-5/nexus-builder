@@ -1,8 +1,11 @@
 FROM rust:alpine
 LABEL authors="marcin"
 
-# Install fish shell and dependencies for plugins
-RUN apk add --no-cache fish curl git fzf bash
+# Install build dependencies and fish shell
+RUN apk add --no-cache \
+    fish curl git fzf bash \
+    musl-dev gcc libc-dev \
+    build-base
 
 # Set up fish plugins and apply default config for tide plugin
 ENV FISH_CONFIG_DIR /root/.config/fish
