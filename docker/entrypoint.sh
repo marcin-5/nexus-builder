@@ -4,13 +4,32 @@ set -e
 FISH_CONFIG_DIR="/root/.config/fish"
 DEFAULT_CONFIG_DIR="/opt/fish_config_default"
 
+# Make sure the app and rust directories exist
+mkdir -p /app
+mkdir -p /app/rust
+
 # If the config directory is mounted but uninitialized (i.e., fisher is missing),
 # copy the default config from the image into the volume.
 if [ ! -f "$FISH_CONFIG_DIR/functions/fisher.fish" ]; then
    echo "Initializing fish config in $FISH_CONFIG_DIR..."
    # Ensure the target functions directory exists before copying
    mkdir -p "$FISH_CONFIG_DIR/functions"
-   cp -a "$DEFAULT_CONFIG_DIR/." "$FISH_CONFIG_DIR/"
+
+   # Check if default config exists before copying
+   if [ -d "$DEFAULT_CONFIG_DIR" ] && [ "$(ls -A $DEFAULT_CONFIG_DIR)" ]; then
+      cp -a "$DEFAULT_CONFIG_DIR/." "$FISH_CONFIG_DIR/"
+   else
+      echo "Warning: Default fish configuration not found in $DEFAULT_CONFIG_DIR"
+      # Create a minimal fish config if the default one doesn't exist
+      echo "# Basic fish configuration" > "$FISH_CONFIG_DIR/config.fish"
+   fi
+fi
+
+# Check if we should run commands in the rust directory
+if [ -d "/app/rust" ] && [ -f "/app/rust/Cargo.toml" ]; then
+   cd /app/rust
+else
+   cd /app
 fi
 
 # Execute the command passed to the container

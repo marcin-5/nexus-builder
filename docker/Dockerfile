@@ -22,10 +22,15 @@ WORKDIR /app/
 
 COPY . .
 
+# Create the rust directory if it doesn't exist
+RUN mkdir -p /app/rust
+
 # Copy the entrypoint script and make it executable
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# Install cargo-watch in the rust subdirectory
+WORKDIR /app/rust
 RUN cargo install cargo-watch
 
 # Create directories for persistent fish history and config
